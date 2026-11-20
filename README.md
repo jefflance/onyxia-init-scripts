@@ -4,7 +4,7 @@ Script d'initialisation pour les services VSCode Onyxia (SSPCloud, Nubonyxia).
 URL à indiquer dans le champ « script d'initialisation » du service :
 
 ```
-https://raw.githubusercontent.com/paquitopg/sspcloud-init-scripts/refs/heads/main/init.sh
+https://raw.githubusercontent.com/jefflance/sspcloud-init-scripts/refs/heads/main/init.sh
 ```
 
 `init.sh` télécharge et lance chaque brique ; l'échec de l'une n'arrête pas les suivantes.
