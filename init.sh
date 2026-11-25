@@ -51,6 +51,7 @@ executer_brique "install_gh.sh"
 executer_brique "setup_claude_config.sh"
 #
 executer_brique "config_albert.sh"
+executer_brique "setup_vscode.sh"
 
 rm -rf "$TRAVAIL"
 echo ""
