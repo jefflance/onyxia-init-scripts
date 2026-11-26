@@ -2,57 +2,23 @@
 # install_openspec.sh — CLI OpenSpec (@fission-ai/openspec)
 # https://github.com/Fission-AI/OpenSpec
 #
-# Installe le CLI « openspec » dans ~/.npm-global, comme Claude Code : il n'est
-# pas persistant et doit être réinstallé à chaque nouveau service.
-# Doit tourner APRES install_claude.sh (il faut Node >= 20.19 et npm).
+# Installé dans ~/.npm-global comme Claude Code : non persistant, réinstallé à
+# chaque service. Après install_claude.sh (Node et npm).
 #
 # Rien n'est initialisé ici : « openspec init » se lance une fois par projet,
-# dans ~/work, et ce qu'il écrit (openspec/, .claude/commands/…)
-# vit dans le dépôt du projet, donc persiste.
-#
+# dans ~/work, et ce qu'il écrit vit dans le dépôt du projet.
 # La télémétrie d'OpenSpec, active par défaut, est coupée dans .bashrc.
 
-set -u
+BRIQUE=openspec
+. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
 
-NPM_PREFIX="$HOME/.npm-global"
-NODE_LOCAL="$HOME/.local/node"
-BASHRC="$HOME/.bashrc"
+command -v npm >/dev/null 2>&1 || echec "npm absent (install_claude.sh doit tourner avant)"
 
-PAQUET="@fission-ai/openspec"
+npm install -g --prefix "$NPM_PREFIX" @fission-ai/openspec@latest >/dev/null 2>&1 \
+  || echec "installation de @fission-ai/openspec (registre npm injoignable ?)"
+log "OK — $(openspec --version 2>/dev/null || echo installé)"
 
-echo "=== [OpenSpec] Installation ==="
-
-# Sous l'identité onyxia : sinon ~/.npm-global appartiendrait à root.
-en_onyxia() {
-  if [ "$(id -u)" = "0" ]; then
-    su onyxia -s /bin/bash -c \
-      "export PATH='$NODE_LOCAL/bin:$NPM_PREFIX/bin:\$PATH'; $*"
-  else
-    PATH="$NODE_LOCAL/bin:$NPM_PREFIX/bin:$PATH" "$@"
-  fi
-}
-
-if ! en_onyxia npm --version >/dev/null 2>&1; then
-  echo "[OpenSpec] ERREUR : npm absent (install_claude.sh doit tourner avant)."
-  exit 0        # on n'interrompt pas le reste de l'initialisation
-fi
-
-if en_onyxia npm install -g "$PAQUET@latest" >/dev/null 2>&1; then
-  echo "[OpenSpec] OK — $(en_onyxia openspec --version 2>/dev/null || echo 'installé')"
-else
-  echo "[OpenSpec] ÉCHEC de l'installation de $PAQUET (registre npm injoignable ?)."
-  exit 0
-fi
-
-if ! grep -q 'OPENSPEC_TELEMETRY' "$BASHRC" 2>/dev/null; then
-  {
-    echo ''
-    echo '# OpenSpec : pas de télémétrie.'
-    echo 'export OPENSPEC_TELEMETRY=0'
-  } >> "$BASHRC"
-  [ "$(id -u)" = "0" ] && chown onyxia:onyxia "$BASHRC" 2>/dev/null
-  echo "[OpenSpec] télémétrie coupée dans .bashrc"
-fi
-
-echo "[OpenSpec] Dans un projet : openspec init, puis /opsx:propose dans Claude Code."
-echo "=== [OpenSpec] Fin ==="
+bashrc_ajouter "OpenSpec : pas de télémétrie" <<'EOF'
+export OPENSPEC_TELEMETRY=0
+EOF
+log "Dans un projet : openspec init, puis /opsx:propose dans Claude Code."

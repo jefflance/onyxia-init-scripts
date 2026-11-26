@@ -1,58 +1,62 @@
 #!/bin/bash
-# init.sh — orchestrateur d'initialisation SSPCloud
+# init.sh — orchestrateur d'initialisation Onyxia (SSPCloud, Nubonyxia)
 #
 # C'est la SEULE URL à fournir à Onyxia (champ « script d'initialisation ») :
 #   https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/refs/heads/main/init.sh
 #
-# Chaque brique est téléchargée puis exécutée avec bash. Deux précautions :
-#   - le fichier est enregistré avant d'être lancé, ce qui permet de vérifier
-#     qu'il a bien été téléchargé (un « curl | bash » sur un téléchargement
-#     échoué ne fait rien, sans rien dire) ;
-#   - l'échec d'une brique est signalé mais n'interrompt pas les suivantes.
+# lib.sh et chaque brique sont téléchargés dans un dossier temporaire, puis
+# lancés avec bash. L'échec d'une brique n'arrête pas les suivantes ; un bilan
+# est affiché à la fin. Lancé en root, chaque brique tourne sous « onyxia ».
 
-BASE_URL="https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/main"
+# Ordre significatif : voir les commentaires à droite.
+BRIQUES=(
+  install_claude.sh          # Node, npm et CLI « claude »
+  install_claude_plugins.sh  # a besoin de claude
+  install_openspec.sh        # a besoin de npm
+  setup_git.sh               # installe le helper Vault
+  install_gh.sh              # a besoin du helper Vault
+  setup_claude_config.sh     # clone un dépôt privé : a besoin du helper Vault
+  config_albert.sh
+  setup_vscode.sh
+)
+
+export BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/main}"
 TRAVAIL="$(mktemp -d)"
+chmod 755 "$TRAVAIL"
 
-echo "############ INIT SSPCLOUD : DÉBUT ############"
+if [ "$(id -u)" = "0" ]; then
+  HOME_ONYXIA="$(getent passwd onyxia | cut -d: -f6)"
+  # -m garde l'environnement (GIT_REPOSITORY, VAULT_*…) ; HOME est remis à celui d'onyxia.
+  lancer() { su -m onyxia -s /bin/bash -c 'HOME="$1"; shift; exec "$@"' _ "$HOME_ONYXIA" "$@"; }
+else
+  lancer() { "$@"; }
+fi
+
+echo "############ INIT ONYXIA : DÉBUT ############"
 echo "utilisateur : $(id -un) (uid $(id -u))"
 
-executer_brique() {
-  local nom="$1" fichier="$TRAVAIL/$1"
+if ! curl -fsSL --max-time 60 "$BASE_URL/lib.sh" -o "$TRAVAIL/lib.sh" || [ ! -s "$TRAVAIL/lib.sh" ]; then
+  echo "[init] ÉCHEC du téléchargement de lib.sh depuis $BASE_URL — abandon."
+  exit 0
+fi
+export INIT_LIB="$TRAVAIL/lib.sh"
+
+BILAN=()
+for brique in "${BRIQUES[@]}"; do
   echo ""
-  echo "---- $nom ----"
-
-  if ! curl -fsSL --max-time 60 "$BASE_URL/$nom" -o "$fichier"; then
-    echo "[init] ÉCHEC du téléchargement de $nom depuis $BASE_URL"
-    echo "       Vérifie l'URL du dépôt et que le fichier y est bien poussé."
-    return 1
+  echo "---- $brique ----"
+  if curl -fsSL --max-time 60 "$BASE_URL/$brique" -o "$TRAVAIL/$brique" && [ -s "$TRAVAIL/$brique" ]; then
+    lancer bash "$TRAVAIL/$brique"
+    code=$?
+  else
+    echo "[init] téléchargement de $brique impossible ou fichier vide."
+    code=1
   fi
-  if [ ! -s "$fichier" ]; then
-    echo "[init] $nom téléchargé mais vide — brique ignorée."
-    return 1
-  fi
-
-  bash "$fichier"
-  local code=$?
-  if [ "$code" -ne 0 ]; then
-    echo "[init] $nom s'est terminé avec le code $code."
-  fi
-  return "$code"
-}
-
-executer_brique "install_claude.sh"
-# Après install_claude.sh : a besoin du CLI « claude ».
-executer_brique "install_claude_plugins.sh"
-# Après install_claude.sh : a besoin de Node et npm.
-executer_brique "install_openspec.sh"
-executer_brique "setup_git.sh"
-# Après setup_git.sh : gh lit son token avec le helper Vault qu'il installe.
-executer_brique "install_gh.sh"
-# Après setup_git.sh : clone un dépôt privé avec le helper Vault qu'il installe.
-executer_brique "setup_claude_config.sh"
-# Agent Continue (API Albert)
-executer_brique "config_albert.sh"
-executer_brique "setup_vscode.sh"
+  if [ "$code" -eq 0 ]; then BILAN+=("  OK     $brique"); else BILAN+=("  ÉCHEC  $brique (code $code)"); fi
+done
 
 rm -rf "$TRAVAIL"
 echo ""
-echo "############ INIT SSPCLOUD : FIN ############"
+echo "############ BILAN ############"
+printf '%s\n' "${BILAN[@]}"
+echo "############ INIT ONYXIA : FIN ############"

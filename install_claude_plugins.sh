@@ -1,23 +1,18 @@
 #!/bin/bash
-# install_claude_plugins.sh — v2 : bun, puis les plugins
-# Installe les plugins Claude Code. ~/.claude n'est pas persistant : sans cette
-# brique, chaque nouveau service démarre sans eux.
-# Doit tourner APRES install_claude.sh (il faut le CLI « claude »).
+# install_claude_plugins.sh — bun, puis les plugins Claude Code
+# ~/.claude n'est pas persistant : sans cette brique, chaque nouveau service
+# démarre sans plugins. Après install_claude.sh (CLI « claude »).
 #
-# Les marketplaces sont des dépôts GitHub publics : pas besoin de token, ni
-# d'être connecté à Claude. Sans accès à internet (Nubonyxia), la brique échoue
-# sans rien casser.
+# Les marketplaces sont des dépôts GitHub publics : ni token, ni connexion à
+# Claude. Sans internet (Nubonyxia), la brique échoue sans rien casser.
 #
-# bun est installé d'abord : certains plugins (compound-engineering) s'en servent
-# pour installer leurs paquets, et les sautent sans lui. Il passe par npm, donc
-# arrive dans ~/.npm-global/bin, déjà dans le PATH.
+# bun d'abord : certains plugins (compound-engineering) s'en servent pour
+# installer leurs paquets et les sautent sans lui.
 #
-# Pour ajouter un plugin : une ligne « <depot GitHub du marketplace> <plugin>@<marketplace> ».
+# Pour ajouter un plugin : une ligne « <dépôt GitHub du marketplace> <plugin>@<marketplace> ».
 
-set -u
-
-NPM_PREFIX="$HOME/.npm-global"
-NODE_LOCAL="$HOME/.local/node"
+BRIQUE=plugins
+. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
 
 PLUGINS="
 EveryInc/compound-engineering-plugin compound-engineering@compound-engineering-plugin
@@ -25,63 +20,33 @@ anthropics/claude-plugins-official frontend-design@claude-plugins-official
 DietrichGebert/ponytail ponytail@ponytail
 "
 
-echo "[claude-plugins] Installation en cours..."
+command -v claude >/dev/null 2>&1 || echec "CLI claude absent (install_claude.sh doit tourner avant)"
 
-# Sous l'identité onyxia : sinon ~/.claude/plugins et ~/.npm-global
-# appartiendraient à root.
-en_onyxia() {
-  if [ "$(id -u)" = "0" ]; then
-    su onyxia -s /bin/bash -c \
-      "export PATH='$NODE_LOCAL/bin:$NPM_PREFIX/bin:\$PATH'; $*"
-  else
-    PATH="$NODE_LOCAL/bin:$NPM_PREFIX/bin:$PATH" "$@"
-  fi
-}
-claude_onyxia() { en_onyxia claude "$@"; }
-
-if [ ! -x "$NPM_PREFIX/bin/claude" ]; then
-  echo "[claude-plugins] ERREUR : CLI claude absent (install_claude.sh doit tourner avant)."
-  exit 0
-fi
-
-if [ "$(id -u)" = "0" ]; then
-  mkdir -p "$HOME/.claude"
-  chown -R onyxia:onyxia "$HOME/.claude" 2>/dev/null || true
-fi
-
-# -- 1. bun ------------------------------------------------------------------
-if en_onyxia bun --version >/dev/null 2>&1; then
-  echo "[claude-plugins] bun déjà présent : $(en_onyxia bun --version 2>/dev/null)"
-elif en_onyxia npm install -g bun >/dev/null 2>&1 && en_onyxia bun --version >/dev/null 2>&1; then
-  echo "[claude-plugins] bun installé : $(en_onyxia bun --version 2>/dev/null)"
+if command -v bun >/dev/null 2>&1; then
+  log "bun déjà présent : $(bun --version)"
+elif npm install -g --prefix "$NPM_PREFIX" bun >/dev/null 2>&1; then
+  log "bun installé : $(bun --version)"
 else
-  echo "[claude-plugins] ECHEC de l'installation de bun : les plugins seront installés sans leurs paquets."
+  log "ÉCHEC de bun : les plugins seront installés sans leurs paquets."
 fi
 
-# -- 2. Plugins --------------------------------------------------------------
-installes="$(claude_onyxia plugin list 2>/dev/null)"
+installes="$(claude plugin list 2>/dev/null)"
+marketplaces="$(claude plugin marketplace list 2>/dev/null)"
+erreurs=0
 
-echo "$PLUGINS" | while read -r depot plugin; do
+while read -r depot plugin; do
   [ -n "$depot" ] || continue
-  marketplace="${plugin#*@}"
+  if grep -qF "$plugin" <<<"$installes"; then log "$plugin déjà installé."; continue; fi
 
-  if echo "$installes" | grep -qF "$plugin"; then
-    echo "[claude-plugins] $plugin déjà installé."
-    continue
+  if ! grep -qF "${plugin#*@}" <<<"$marketplaces" \
+     && ! claude plugin marketplace add "$depot" >/dev/null 2>&1; then
+    log "ÉCHEC : marketplace $depot injoignable (pas d'internet ?)."; erreurs=1; continue
   fi
-
-  if ! claude_onyxia plugin marketplace list 2>/dev/null | grep -qF "$marketplace"; then
-    if ! claude_onyxia plugin marketplace add "$depot" >/dev/null 2>&1; then
-      echo "[claude-plugins] ECHEC : marketplace $depot injoignable (pas d'internet ?)."
-      continue
-    fi
-  fi
-
-  if claude_onyxia plugin install "$plugin" --scope user >/dev/null 2>&1; then
-    echo "[claude-plugins] $plugin installé."
+  if claude plugin install "$plugin" --scope user >/dev/null 2>&1; then
+    log "$plugin installé."
   else
-    echo "[claude-plugins] ECHEC de l'installation de $plugin."
+    log "ÉCHEC de l'installation de $plugin."; erreurs=1
   fi
-done
+done <<<"$PLUGINS"
 
-echo "[claude-plugins] Terminé."
+exit "$erreurs"

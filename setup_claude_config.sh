@@ -13,18 +13,15 @@
 # Le clone vit hors de ~/work : il est refait a chaque nouveau service, donc
 # toujours a jour. Toute modification faite dedans doit etre poussee aussitot.
 
-set -u
+BRIQUE=claude-config
+. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
 
 CLAUDE_DIR="$HOME/.claude"
 CONFIG_DIR="$HOME/.local/share/claude-onyxia-config"
-HELPER="$HOME/.local/bin/git-credential-vault"
 CONFIG_REPO="${CLAUDE_CONFIG_REPO:-https://github.com/paquitopg/claude-onyxia-config.git}"
 
-echo "[claude-config] Configuration en cours..."
-
 if [ ! -x "$HELPER" ]; then
-  echo "[claude-config] ERREUR : $HELPER absent (setup_git.sh doit tourner avant)."
-  exit 0
+  echec "$HELPER absent (setup_git.sh doit tourner avant)"
 fi
 
 # -- 1. Cloner, ou mettre a jour si le clone existe deja ---------------------
@@ -32,16 +29,15 @@ mkdir -p "$(dirname "$CONFIG_DIR")"
 if [ -d "$CONFIG_DIR/.git" ]; then
   if git -c credential.helper="$HELPER" -c safe.directory="$CONFIG_DIR" \
        -C "$CONFIG_DIR" pull --ff-only --quiet 2>&1; then
-    echo "[claude-config] Depot mis a jour."
+    log "Depot mis a jour."
   else
-    echo "[claude-config] ATTENTION : mise a jour impossible, version locale conservee."
+    log "ATTENTION : mise a jour impossible, version locale conservee."
   fi
 else
   if git -c credential.helper="$HELPER" clone --quiet "$CONFIG_REPO" "$CONFIG_DIR" 2>&1; then
-    echo "[claude-config] Depot clone dans $CONFIG_DIR"
+    log "Depot clone dans $CONFIG_DIR"
   else
-    echo "[claude-config] ECHEC du clonage (depot prive : cle GITHUB_TOKEN absente de Vault ?)."
-    exit 0
+    echec "clonage impossible (depot prive : cle GITHUB_TOKEN absente de Vault ?)"
   fi
 fi
 
@@ -54,7 +50,7 @@ relier() {
   if [ -e "$lien" ] && [ ! -L "$lien" ]; then
     mkdir -p "$BACKUP_DIR"
     mv "$lien" "$BACKUP_DIR/$(basename "$lien").$(date +%Y%m%d%H%M%S)"
-    echo "[claude-config] $lien existant mis de cote dans $BACKUP_DIR."
+    log "$lien existant mis de cote dans $BACKUP_DIR."
   fi
   ln -sfn "$cible" "$lien"
 }
@@ -63,20 +59,15 @@ mkdir -p "$CLAUDE_DIR/skills"
 
 if [ -f "$CONFIG_DIR/CLAUDE.md" ]; then
   relier "$CONFIG_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
-  echo "[claude-config] CLAUDE.md relie."
+  log "CLAUDE.md relie."
 fi
 
 for skill in "$CONFIG_DIR"/skills/*/; do
   [ -f "$skill/SKILL.md" ] || continue
   nom="$(basename "$skill")"
   relier "${skill%/}" "$CLAUDE_DIR/skills/$nom"
-  echo "[claude-config] Skill '$nom' relie."
+  log "Skill '$nom' relie."
 done
 
-# -- 3. Droits (le script tourne souvent en root) ----------------------------
-if [ "$(id -u)" = "0" ]; then
-  chown -R onyxia:onyxia "$CONFIG_DIR" "$CLAUDE_DIR" 2>/dev/null || true
-  chown onyxia:onyxia "$HOME/.local" "$HOME/.local/share" 2>/dev/null || true
-fi
 
-echo "[claude-config] Termine."
+log "Termine."

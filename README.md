@@ -7,11 +7,11 @@ URL à indiquer dans le champ « script d'initialisation » du service :
 https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/refs/heads/main/init.sh
 ```
 
-`init.sh` télécharge et lance chaque brique ; l'échec de l'une n'arrête pas les suivantes.
+`init.sh` télécharge `lib.sh` (fonctions et chemins communs), puis lance chaque brique de sa liste `BRIQUES` ; l'échec de l'une n'arrête pas les suivantes et un bilan est affiché à la fin. Lancé en root, il exécute les briques sous `onyxia`.
 
 | Brique | Rôle |
 | --- | --- |
-| `install_claude.sh` | Node.js 22, CLI Claude Code, extension VSCode, token `CLAUDE_CODE_OAUTH_TOKEN` lu dans Vault (pas de `claude login`) |
+| `install_claude.sh` | Node.js 22 (archive officielle dans `~/.local/node`, somme de contrôle vérifiée, sans root), CLI Claude Code, extension VSCode, token `CLAUDE_CODE_OAUTH_TOKEN` lu dans Vault (pas de `claude login`) |
 | `install_claude_plugins.sh` | bun, plugins Claude Code (compound-engineering, frontend-design, ponytail) |
 | `install_openspec.sh` | CLI OpenSpec (télémétrie coupée) |
 | `setup_git.sh` | Git, helper `git-credential-vault`, clone du dépôt du service |

@@ -9,26 +9,19 @@
 #   tokens       : lus dans Vault a la volee par le helper (jamais stockes)
 #   depot        : GIT_REPOSITORY (fourni par Onyxia, onglet Git)
 
-set -u
+BRIQUE=git
+. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
 
 WORK_DIR="$HOME/work"
 GITCONFIG="$HOME/.gitconfig"
-BIN_DIR="$HOME/.local/bin"
-HELPER="$BIN_DIR/git-credential-vault"
-BASHRC="$HOME/.bashrc"
-
-BASE_URL="https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/main"
-
-echo "[git] Configuration en cours..."
 
 # -- 1. Installer le helper --------------------------------------------------
 mkdir -p "$BIN_DIR"
-if curl -fsSL "$BASE_URL/git-credential-vault" -o "$HELPER"; then
+if telecharger "$BASE_URL/git-credential-vault" "$HELPER"; then
   chmod +x "$HELPER"
-  echo "[git] Helper installe."
+  log "Helper installe."
 else
-  echo "[git] ERREUR : telechargement du helper impossible."
-  exit 0
+  echec "telechargement du helper impossible"
 fi
 
 # -- 2. Identite : Onyxia d'abord, sinon Vault ------------------------------
@@ -43,16 +36,16 @@ gitcfg() { git config --file "$GITCONFIG" "$@"; }
 
 if [ -n "$GIT_NAME_VALUE" ]; then
   gitcfg user.name "$GIT_NAME_VALUE"
-  echo "[git] user.name configure (depuis l'environnement ou Vault)."
+  log "user.name configure (depuis l'environnement ou Vault)."
 else
-  echo "[git] ATTENTION : nom introuvable (ni GIT_USER_NAME, ni cle GIT_NAME)."
+  log "ATTENTION : nom introuvable (ni GIT_USER_NAME, ni cle GIT_NAME)."
 fi
 
 if [ -n "$GIT_MAIL_VALUE" ]; then
   gitcfg user.email "$GIT_MAIL_VALUE"
-  echo "[git] user.email configure (depuis l'environnement ou Vault)."
+  log "user.email configure (depuis l'environnement ou Vault)."
 else
-  echo "[git] ATTENTION : email introuvable (ni GIT_USER_MAIL, ni cle GIT_EMAIL)."
+  log "ATTENTION : email introuvable (ni GIT_USER_MAIL, ni cle GIT_EMAIL)."
 fi
 
 gitcfg init.defaultBranch main
@@ -76,22 +69,16 @@ gitcfg alias.ship '!f() { git fetch origin && git fetch forge && git switch "$1"
 gitcfg credential.helper "$HELPER"
 git config --file "$GITCONFIG" --remove-section 'credential.https://github.com' 2>/dev/null || true
 git config --file "$GITCONFIG" --remove-section 'credential.https://gitlab.com' 2>/dev/null || true
-echo "[git] Helper unique configure (GitHub / GitLab automatiques)."
+log "Helper unique configure (GitHub / GitLab automatiques)."
 
 # -- 4. Neutraliser l'askpass de VSCode ------------------------------------
-if ! grep -q "unset GIT_ASKPASS" "$BASHRC" 2>/dev/null; then
-  cat >> "$BASHRC" << 'EOF'
-
-# --- Laisse agir les helpers git plutot que l'askpass de VSCode ---
+bashrc_ajouter "Laisse agir les helpers git plutot que l'askpass de VSCode" <<'EOF'
 unset GIT_ASKPASS
 unset VSCODE_GIT_ASKPASS_NODE
 unset VSCODE_GIT_ASKPASS_MAIN
 unset VSCODE_GIT_ASKPASS_EXTRA_ARGS
 unset VSCODE_GIT_IPC_HANDLE
-export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
 EOF
-  echo "[git] Askpass VSCode neutralise + PATH complete."
-fi
 
 # -- 5. Cloner automatiquement le depot du service -------------------------
 # Onyxia fournit GIT_REPOSITORY (onglet Git). Son clone natif echoue pour un
@@ -102,16 +89,16 @@ if [ -n "${GIT_REPOSITORY:-}" ]; then
   mkdir -p "$WORK_DIR"
 
   if [ -d "$TARGET/.git" ]; then
-    echo "[git] Depot deja present : $TARGET"
+    log "Depot deja present : $TARGET"
   else
-    echo "[git] Clonage de $REPO_NAME..."
+    log "Clonage de $REPO_NAME..."
     BRANCH_OPT=""
     [ -n "${GIT_BRANCH:-}" ] && BRANCH_OPT="--branch ${GIT_BRANCH}"
     if git -c credential.helper="$HELPER" clone $BRANCH_OPT \
          "$GIT_REPOSITORY" "$TARGET" 2>&1; then
-      echo "[git] Depot clone dans $TARGET"
+      log "Depot clone dans $TARGET"
     else
-      echo "[git] ECHEC du clonage (token absent dans Vault ?)."
+      log "ECHEC du clonage (token absent dans Vault ?)."
     fi
   fi
   
@@ -130,19 +117,14 @@ if [ -n "${GIT_REPOSITORY:-}" ]; then
     if [ -n "$FORGE_HOST_VALUE" ] && [ -n "$FORGE_PATH" ]; then
       git -C "$TARGET" remote remove forge 2>/dev/null || true
       git -C "$TARGET" remote add forge "https://$FORGE_HOST_VALUE/${FORGE_PATH%.git}.git"
-      echo "[git] Remote 'forge' ajoute : git forge-push (branche -> forge), git forge-pull (main forge -> GitHub)."
+      log "Remote 'forge' ajoute : git forge-push (branche -> forge), git forge-pull (main forge -> GitHub)."
     else
-      echo "[git] Pas de remote 'forge' pour $REPO_NAME (FORGE_HOST ou FORGE_REMOTES absent)."
+      log "Pas de remote 'forge' pour $REPO_NAME (FORGE_HOST ou FORGE_REMOTES absent)."
     fi
   fi
 else
-  echo "[git] Aucun GIT_REPOSITORY fourni : pas de clonage."
+  log "Aucun GIT_REPOSITORY fourni : pas de clonage."
 fi
 
-# -- 6. Droits (le script tourne souvent en root) --------------------------
-if [ "$(id -u)" = "0" ]; then
-  chown -R onyxia:onyxia "$HOME/.local" "$WORK_DIR" 2>/dev/null || true
-  chown onyxia:onyxia "$GITCONFIG" "$BASHRC" 2>/dev/null || true
-fi
 
-echo "[git] Termine."
+log "Termine."
