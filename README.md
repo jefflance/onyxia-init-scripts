@@ -7,9 +7,11 @@ URL à indiquer dans le champ « script d'initialisation » du service :
 https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/refs/heads/main/init.sh
 ```
 
-`init.sh` télécharge `lib.sh` (fonctions et chemins communs), puis lance chaque brique de sa liste `BRIQUES` ; l'échec de l'une n'arrête pas les suivantes et un bilan est affiché à la fin. Lancé en root, il exécute les briques sous `onyxia`.
+`init.sh` télécharge `lib/lib.sh` (fonctions et chemins communs), puis lance chaque stage de sa liste `STAGES` ; l'échec de l'un n'arrête pas les suivants et un bilan est affiché à la fin. Lancé en root, il exécute les stages sous `onyxia`.
 
-| Brique | Rôle |
+Arborescence : `init.sh` (seule URL à fournir), `lib/lib.sh`, `stages/` (un stage par script), `bin/git-credential-vault` (helper installé par `setup_git.sh`).
+
+| Stage (`stages/`) | Rôle |
 | --- | --- |
 | `install_claude.sh` | Node.js 22 (archive officielle dans `~/.local/node`, somme de contrôle vérifiée et signature GPG des sommes si `gpgv` est présent, sans root), CLI Claude Code, extension VSCode, token `CLAUDE_CODE_OAUTH_TOKEN` lu dans Vault (pas de `claude login`) |
 | `install_claude_plugins.sh` | bun, plugins Claude Code (compound-engineering, frontend-design, ponytail) |
@@ -29,7 +31,7 @@ dans l'environnement, puis dans Vault (`VAULT_ADDR`, `VAULT_TOKEN`, `VAULT_MOUNT
 fournis par Onyxia ; parcours de l'arborescence sur 4 niveaux, première occurrence retenue).
 L'emplacement trouvé (jamais la valeur) est gardé dans `~/.cache/git-credential-vault.json` : les
 appels suivants coûtent une requête. Le helper ne répond qu'en `https`.
-`git-credential-vault secret <CLÉ>` affiche la valeur : c'est ce qu'utilisent les autres briques.
+`git-credential-vault secret <CLÉ>` affiche la valeur : c'est ce qu'utilisent les autres stages.
 
 | Clé (environnement ou Vault) | Utilisée par |
 | --- | --- |
@@ -40,23 +42,23 @@ appels suivants coûtent une requête. Le helper ne répond qu'en `https`.
 | `FORGE_HOST`, `FORGE_TOKEN` | git sur la Forge interne |
 | `FORGE_REMOTES` | `nom-du-dépôt=chemin/sur/la/forge`, paires séparées par des espaces |
 
-Variables d'environnement lues par les briques : `GIT_REPOSITORY` et `GIT_BRANCH` (Onyxia, clone du
+Variables d'environnement lues par les stages : `GIT_REPOSITORY` et `GIT_BRANCH` (Onyxia, clone du
 dépôt du service dans `~/work`), `ALBERT_API_KEY` (lue par Continue, pas par les scripts),
-`CLAUDE_CONFIG_REPO` (URL du dépôt privé de `setup_claude_config.sh` ; sans lui, la brique est ignorée), `INIT_REF` / `BASE_URL` (origine des scripts, voir ci-dessous),
+`CLAUDE_CONFIG_REPO` (URL du dépôt privé de `setup_claude_config.sh` ; sans lui, le stage est ignoré), `INIT_REF` / `BASE_URL` (origine des scripts, voir ci-dessous),
 `CLAUDE_CODE_VERSION` et `OPENSPEC_VERSION` (versions npm ; `latest` par défaut).
 
 ## Modifier ou tester
 
-- **Ajouter une brique** : créer `ma_brique.sh` commençant par
-  `BRIQUE=nom; . "${INIT_LIB:-$(dirname "$0")/lib.sh}"` (donne `log`, `echec`, `telecharger`,
-  `bashrc_ajouter`, `$ARCH_GO`, `$ARCH_NODE` et le `PATH`), puis l'ajouter à `BRIQUES` dans `init.sh`
+- **Ajouter un stage** : créer `stages/mon_stage.sh` commençant par
+  `STAGE=nom; . "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"` (donne `log`, `echec`, `telecharger`,
+  `bashrc_ajouter`, `$ARCH_GO`, `$ARCH_NODE` et le `PATH`), puis l'ajouter à `STAGES` dans `init.sh`
   à sa place dans l'ordre. `echec "…"` quitte avec le code 1 ; `init.sh` passe à la suivante.
 - **Essayer une branche** : `BASE_URL=https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/<branche-ou-sha> bash init.sh`.
   Par défaut `main` est suivi, donc tout push s'applique au prochain service. Pour épingler :
   URL de `init.sh` à un SHA ou un tag, et variable d'environnement `INIT_REF` au même SHA ou tag.
-- **Rejouable** : chaque brique vérifie ce qui est déjà en place (Node, gh, plugins, `.bashrc`).
-- `init.sh` rend toujours 0, même si des briques échouent : lire le bilan en fin de journal
-  (une brique qui sort en non-zéro y figure en ÉCHEC, y compris un clonage raté dans `setup_git.sh`).
+- **Rejouable** : chaque stage vérifie ce qui est déjà en place (Node, gh, plugins, `.bashrc`).
+- `init.sh` rend toujours 0, même si des stages échouent : lire le bilan en fin de journal
+  (un stage qui sort en non-zéro y figure en ÉCHEC, y compris un clonage raté dans `setup_git.sh`).
 
 ## Alias git : GitHub ↔ Forge
 

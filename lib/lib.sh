@@ -1,6 +1,6 @@
 #!/bin/bash
-# lib.sh — fonctions et chemins communs aux briques. Sourcé, jamais lancé seul :
-#   BRIQUE=nom; . "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+# lib.sh — fonctions et chemins communs aux stages. Sourcé, jamais lancé seul :
+#   STAGE=nom; . "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 # init.sh le télécharge une fois et exporte INIT_LIB.
 
 set -u
@@ -12,7 +12,7 @@ NODE_DIR="$HOME/.local/node"
 NPM_PREFIX="$HOME/.npm-global"
 HELPER="$BIN_DIR/git-credential-vault"
 
-# Node et les outils utilisateur priment sur le système, pour cette brique comme pour les suivantes.
+# Node et les outils utilisateur priment sur le système, pour ce stage comme pour les suivants.
 export PATH="$NODE_DIR/bin:$NPM_PREFIX/bin:$BIN_DIR:$PATH"
 
 # Noms d'architecture : gh / Go (ARCH_GO) et Node (ARCH_NODE). Vides si non prévue.
@@ -22,8 +22,8 @@ case "$(uname -m)" in
   *)       ARCH_GO="";    ARCH_NODE="" ;;
 esac
 
-log()   { echo "[${BRIQUE:-init}] $*"; }
-echec() { log "ÉCHEC : $*"; exit 1; }      # init.sh signale l'échec et passe à la brique suivante
+log()   { echo "[${STAGE:-init}] $*"; }
+echec() { log "ÉCHEC : $*"; exit 1; }      # init.sh signale l'échec et passe au stage suivant
 # telecharger <url> <fichier> [délai en secondes]
 telecharger() { curl -fsSL --max-time "${3:-60}" "$1" -o "$2"; }
 

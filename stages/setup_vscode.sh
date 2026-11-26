@@ -3,8 +3,8 @@
 # N'écrase pas un thème déjà choisi ; le fichier peut contenir des commentaires (JSONC),
 # donc insertion textuelle plutôt que réécriture JSON.
 
-BRIQUE=vscode
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=vscode
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 SETTINGS="${HOME}/.local/share/code-server/User/settings.json"
 mkdir -p "$(dirname "$SETTINGS")"

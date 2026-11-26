@@ -1,18 +1,18 @@
 #!/bin/bash
 # install_claude_plugins.sh — bun, puis les plugins Claude Code
-# ~/.claude n'est pas persistant : sans cette brique, chaque nouveau service
+# ~/.claude n'est pas persistant : sans ce stage, chaque nouveau service
 # démarre sans plugins. Après install_claude.sh (CLI « claude »).
 #
 # Les marketplaces sont des dépôts GitHub publics : ni token, ni connexion à
-# Claude. Sans internet (Nubonyxia), la brique échoue sans rien casser.
+# Claude. Sans internet (Nubonyxia), le stage échoue sans rien casser.
 #
 # bun d'abord : certains plugins (compound-engineering) s'en servent pour
 # installer leurs paquets et les sautent sans lui.
 #
 # Pour ajouter un plugin : une ligne « <dépôt GitHub du marketplace> <plugin>@<marketplace> ».
 
-BRIQUE=plugins
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=plugins
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 PLUGINS="
 EveryInc/compound-engineering-plugin compound-engineering@compound-engineering-plugin

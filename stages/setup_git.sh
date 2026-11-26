@@ -9,8 +9,8 @@
 #   tokens       : lus dans Vault a la volee par le helper (jamais stockes)
 #   dépôt        : GIT_REPOSITORY (fourni par Onyxia, onglet Git)
 
-BRIQUE=git
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=git
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 WORK_DIR="$HOME/work"
 GITCONFIG="$HOME/.gitconfig"
@@ -18,7 +18,7 @@ ERREURS=0
 
 # -- 1. Installer le helper --------------------------------------------------
 mkdir -p "$BIN_DIR"
-if telecharger "$BASE_URL/git-credential-vault" "$HELPER"; then
+if telecharger "$BASE_URL/bin/git-credential-vault" "$HELPER"; then
   chmod +x "$HELPER"
   log "Helper installé."
 else

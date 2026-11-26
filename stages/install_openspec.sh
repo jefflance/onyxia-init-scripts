@@ -9,8 +9,8 @@
 # dans ~/work, et ce qu'il écrit vit dans le dépôt du projet.
 # La télémétrie d'OpenSpec, active par défaut, est coupée dans .bashrc.
 
-BRIQUE=openspec
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=openspec
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 command -v npm >/dev/null 2>&1 || echec "npm absent (install_claude.sh doit tourner avant)"
 

@@ -9,8 +9,8 @@
 # appel, avec le helper installé par setup_git.sh, puis passe la main au
 # vrai binaire.
 
-BRIQUE=gh
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=gh
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 GH_DIR="$HOME/.local/share/gh"
 VERSION_SECOURS="2.102.0"         # si la dernière version ne peut pas être lue

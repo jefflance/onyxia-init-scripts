@@ -13,15 +13,15 @@
 # Le clone vit hors de ~/work : il est refait à chaque nouveau service, donc
 # toujours à jour. Toute modification faite dedans doit être poussée aussitôt.
 
-BRIQUE=claude-config
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=claude-config
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 CLAUDE_DIR="$HOME/.claude"
 CONFIG_DIR="$HOME/.local/share/claude-onyxia-config"
 CONFIG_REPO="${CLAUDE_CONFIG_REPO:-}"
 
 if [ -z "$CONFIG_REPO" ]; then
-  log "CLAUDE_CONFIG_REPO non défini : brique ignorée."
+  log "CLAUDE_CONFIG_REPO non défini : stage ignoré."
   exit 0
 fi
 

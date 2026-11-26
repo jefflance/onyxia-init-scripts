@@ -1,8 +1,8 @@
 #!/bin/bash
 # Pose un agent Continue sans toucher au config.yaml généré par l'extension.
 # ALBERT_API_KEY : variable d'env Onyxia, résolue par Continue à l'exécution (jamais écrite ici).
-BRIQUE=albert
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=albert
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 set -e
 
 mkdir -p "$HOME/.continue/agents"

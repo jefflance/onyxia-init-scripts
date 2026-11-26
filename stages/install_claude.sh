@@ -11,8 +11,8 @@
 # Authentification : token CLAUDE_CODE_OAUTH_TOKEN lu dans Vault (section 4),
 # sinon « claude login » dans le terminal.
 
-BRIQUE=claude
-. "${INIT_LIB:-$(dirname "$0")/lib.sh}"
+STAGE=claude
+. "${INIT_LIB:-$(dirname "$0")/../lib/lib.sh}"
 
 MAJEUR=22
 
