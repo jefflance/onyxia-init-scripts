@@ -10,6 +10,34 @@ STAGE=vscode
 SETTINGS="${HOME}/.local/share/code-server/User/settings.json"
 mkdir -p "$(dirname "$SETTINGS")"
 
+# reglage CLÉ 'VALEUR JSON' : ajoute le réglage s'il est absent
+reglage() {
+  if grep -q "\"$1\"" "$SETTINGS" 2>/dev/null; then
+    log "$1 déjà défini, inchangé."
+  elif [ ! -s "$SETTINGS" ]; then
+    printf '{\n  "%s": %s\n}\n' "$1" "$2" > "$SETTINGS"
+    log "$1 défini."
+  else
+    # première « { » d'une ligne qui n'est pas un commentaire //
+    sed -i "0,/^[^/]*{/s//&\n  \"$1\": $2,/" "$SETTINGS"
+    log "$1 défini."
+  fi
+}
+
+# Derrière le proxy (Nubo), code-server ne joint pas Open VSX : on télécharge le .vsix via wget (proxy dans ~/.wgetrc).
+# Barre secondaire visible avant l'installation, pour que le chat de Claude s'y place.
+if [ -n "${PROXY_URL:-}" ] && ! code-server --list-extensions 2>/dev/null | grep -qix 'anthropic.claude-code'; then
+  reglage workbench.secondarySideBar.defaultVisibility '"visible"'
+  vsix=/tmp/claude-code.vsix
+  url=$(wget -qO- https://open-vsx.org/api/Anthropic/claude-code/linux-x64/latest | grep -o '"download":"[^"]*"' | head -1 | cut -d'"' -f4)
+  if [ -n "$url" ] && wget -qO "$vsix" "$url" && code-server --install-extension "$vsix" >/dev/null 2>&1; then
+    log "extension anthropic.claude-code installée (via proxy)."
+  else
+    log "extension anthropic.claude-code non installée."
+  fi
+  rm -f "$vsix"
+fi
+
 # Extension du thème (Open VSX, la galerie de code-server) ; sans elle le thème défini serait ignoré.
 if code-server --list-extensions 2>/dev/null | grep -qix 'sldobri.bunker'; then
   log "extension sldobri.bunker déjà installée."
@@ -24,20 +52,6 @@ for ext in $(code-server --list-extensions 2>/dev/null); do
   code-server --install-extension "$ext" --force >/dev/null 2>&1 \
     && log "extension $ext à jour." || log "extension $ext non mise à jour."
 done
-
-# reglage CLÉ 'VALEUR JSON' : ajoute le réglage s'il est absent
-reglage() {
-  if grep -q "\"$1\"" "$SETTINGS" 2>/dev/null; then
-    log "$1 déjà défini, inchangé."
-  elif [ ! -s "$SETTINGS" ]; then
-    printf '{\n  "%s": %s\n}\n' "$1" "$2" > "$SETTINGS"
-    log "$1 défini."
-  else
-    # première « { » d'une ligne qui n'est pas un commentaire //
-    sed -i "0,/^[^/]*{/s//&\n  \"$1\": $2,/" "$SETTINGS"
-    log "$1 défini."
-  fi
-}
 
 reglage workbench.colorTheme '"Dobri Next -A00- Black"'
 reglage workbench.startupEditor '"none"'
