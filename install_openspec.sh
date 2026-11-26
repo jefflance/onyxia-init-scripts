@@ -7,17 +7,16 @@
 # Doit tourner APRES install_claude.sh (il faut Node >= 20.19 et npm).
 #
 # Rien n'est initialisé ici : « openspec init » se lance une fois par projet,
-# dans /home/onyxia/work, et ce qu'il écrit (openspec/, .claude/commands/…)
+# dans ~/work, et ce qu'il écrit (openspec/, .claude/commands/…)
 # vit dans le dépôt du projet, donc persiste.
 #
 # La télémétrie d'OpenSpec, active par défaut, est coupée dans .bashrc.
 
 set -u
 
-USER_HOME="/home/onyxia"
-NPM_PREFIX="$USER_HOME/.npm-global"
-NODE_LOCAL="$USER_HOME/.local/node"
-BASHRC="$USER_HOME/.bashrc"
+NPM_PREFIX="$HOME/.npm-global"
+NODE_LOCAL="$HOME/.local/node"
+BASHRC="$HOME/.bashrc"
 
 PAQUET="@fission-ai/openspec"
 
@@ -27,7 +26,7 @@ echo "=== [OpenSpec] Installation ==="
 en_onyxia() {
   if [ "$(id -u)" = "0" ]; then
     su onyxia -s /bin/bash -c \
-      "export HOME='$USER_HOME' PATH='$NODE_LOCAL/bin:$NPM_PREFIX/bin:\$PATH'; $*"
+      "export PATH='$NODE_LOCAL/bin:$NPM_PREFIX/bin:\$PATH'; $*"
   else
     PATH="$NODE_LOCAL/bin:$NPM_PREFIX/bin:$PATH" "$@"
   fi

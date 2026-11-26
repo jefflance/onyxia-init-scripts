@@ -11,11 +11,10 @@
 
 set -u
 
-USER_HOME="/home/onyxia"
-BIN_DIR="$USER_HOME/.local/bin"
-GH_DIR="$USER_HOME/.local/share/gh"
+BIN_DIR="$HOME/.local/bin"
+GH_DIR="$HOME/.local/share/gh"
 LANCEUR="$BIN_DIR/gh"
-BASHRC="$USER_HOME/.bashrc"
+BASHRC="$HOME/.bashrc"
 
 VERSION_SECOURS="2.102.0"         # si la dernière version ne peut pas être lue
 
@@ -93,7 +92,7 @@ if ! grep -q '\.local/bin' "$BASHRC" 2>/dev/null; then
 fi
 
 if [ "$(id -u)" = "0" ]; then
-  chown -R onyxia:onyxia "$USER_HOME/.local" 2>/dev/null || true
+  chown -R onyxia:onyxia "$HOME/.local" 2>/dev/null || true
   chown onyxia:onyxia "$BASHRC" 2>/dev/null || true
 fi
 

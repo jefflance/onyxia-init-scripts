@@ -16,9 +16,8 @@
 
 set -u
 
-USER_HOME="/home/onyxia"
-NPM_PREFIX="$USER_HOME/.npm-global"
-NODE_LOCAL="$USER_HOME/.local/node"
+NPM_PREFIX="$HOME/.npm-global"
+NODE_LOCAL="$HOME/.local/node"
 
 PLUGINS="
 EveryInc/compound-engineering-plugin compound-engineering@compound-engineering-plugin
@@ -33,7 +32,7 @@ echo "[claude-plugins] Installation en cours..."
 en_onyxia() {
   if [ "$(id -u)" = "0" ]; then
     su onyxia -s /bin/bash -c \
-      "export HOME='$USER_HOME' PATH='$NODE_LOCAL/bin:$NPM_PREFIX/bin:\$PATH'; $*"
+      "export PATH='$NODE_LOCAL/bin:$NPM_PREFIX/bin:\$PATH'; $*"
   else
     PATH="$NODE_LOCAL/bin:$NPM_PREFIX/bin:$PATH" "$@"
   fi
@@ -46,8 +45,8 @@ if [ ! -x "$NPM_PREFIX/bin/claude" ]; then
 fi
 
 if [ "$(id -u)" = "0" ]; then
-  mkdir -p "$USER_HOME/.claude"
-  chown -R onyxia:onyxia "$USER_HOME/.claude" 2>/dev/null || true
+  mkdir -p "$HOME/.claude"
+  chown -R onyxia:onyxia "$HOME/.claude" 2>/dev/null || true
 fi
 
 # -- 1. bun ------------------------------------------------------------------

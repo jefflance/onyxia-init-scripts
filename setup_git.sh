@@ -11,14 +11,13 @@
 
 set -u
 
-USER_HOME="/home/onyxia"
-WORK_DIR="$USER_HOME/work"
-GITCONFIG="$USER_HOME/.gitconfig"
-BIN_DIR="$USER_HOME/.local/bin"
+WORK_DIR="$HOME/work"
+GITCONFIG="$HOME/.gitconfig"
+BIN_DIR="$HOME/.local/bin"
 HELPER="$BIN_DIR/git-credential-vault"
-BASHRC="$USER_HOME/.bashrc"
+BASHRC="$HOME/.bashrc"
 
-BASE_URL="https://raw.githubusercontent.com/paquitopg/sspcloud-init-scripts/main"
+BASE_URL="https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/main"
 
 echo "[git] Configuration en cours..."
 
@@ -142,7 +141,7 @@ fi
 
 # -- 6. Droits (le script tourne souvent en root) --------------------------
 if [ "$(id -u)" = "0" ]; then
-  chown -R onyxia:onyxia "$USER_HOME/.local" "$WORK_DIR" 2>/dev/null || true
+  chown -R onyxia:onyxia "$HOME/.local" "$WORK_DIR" 2>/dev/null || true
   chown onyxia:onyxia "$GITCONFIG" "$BASHRC" 2>/dev/null || true
 fi
 

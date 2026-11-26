@@ -2,7 +2,7 @@
 # init.sh — orchestrateur d'initialisation SSPCloud
 #
 # C'est la SEULE URL à fournir à Onyxia (champ « script d'initialisation ») :
-#   https://raw.githubusercontent.com/paquitopg/sspcloud-init-scripts/refs/heads/main/init.sh
+#   https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/refs/heads/main/init.sh
 #
 # Chaque brique est téléchargée puis exécutée avec bash. Deux précautions :
 #   - le fichier est enregistré avant d'être lancé, ce qui permet de vérifier
@@ -10,7 +10,7 @@
 #     échoué ne fait rien, sans rien dire) ;
 #   - l'échec d'une brique est signalé mais n'interrompt pas les suivantes.
 
-BASE_URL="https://raw.githubusercontent.com/paquitopg/sspcloud-init-scripts/main"
+BASE_URL="https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/main"
 TRAVAIL="$(mktemp -d)"
 
 echo "############ INIT SSPCLOUD : DÉBUT ############"
@@ -49,7 +49,7 @@ executer_brique "setup_git.sh"
 executer_brique "install_gh.sh"
 # Après setup_git.sh : clone un dépôt privé avec le helper Vault qu'il installe.
 executer_brique "setup_claude_config.sh"
-#
+# Agent Continue (API Albert)
 executer_brique "config_albert.sh"
 executer_brique "setup_vscode.sh"
 

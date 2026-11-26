@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 # Pose un agent Continue sans toucher au config.yaml généré par l'extension.
-# ALBERT_API_KEY : variable d'env Onyxia (idéalement adossée à Vault).
+# ALBERT_API_KEY : variable d'env Onyxia, résolue par Continue à l'exécution (jamais écrite ici).
 set -e
 
 mkdir -p "$HOME/.continue/agents"
 
-# La clé est lue depuis le Vault
+# Heredoc entre guillemets : ${{ secrets... }} reste littéral, c'est la syntaxe Continue.
 cat > "$HOME/.continue/agents/albert.yaml" <<'EOF'
 %YAML 1.1
 ---

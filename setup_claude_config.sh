@@ -15,10 +15,9 @@
 
 set -u
 
-USER_HOME="/home/onyxia"
-CLAUDE_DIR="$USER_HOME/.claude"
-CONFIG_DIR="$USER_HOME/.local/share/claude-onyxia-config"
-HELPER="$USER_HOME/.local/bin/git-credential-vault"
+CLAUDE_DIR="$HOME/.claude"
+CONFIG_DIR="$HOME/.local/share/claude-onyxia-config"
+HELPER="$HOME/.local/bin/git-credential-vault"
 CONFIG_REPO="${CLAUDE_CONFIG_REPO:-https://github.com/paquitopg/claude-onyxia-config.git}"
 
 echo "[claude-config] Configuration en cours..."
@@ -77,7 +76,7 @@ done
 # -- 3. Droits (le script tourne souvent en root) ----------------------------
 if [ "$(id -u)" = "0" ]; then
   chown -R onyxia:onyxia "$CONFIG_DIR" "$CLAUDE_DIR" 2>/dev/null || true
-  chown onyxia:onyxia "$USER_HOME/.local" "$USER_HOME/.local/share" 2>/dev/null || true
+  chown onyxia:onyxia "$HOME/.local" "$HOME/.local/share" 2>/dev/null || true
 fi
 
 echo "[claude-config] Termine."

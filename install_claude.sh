@@ -17,10 +17,9 @@
 
 set -u
 
-USER_HOME="/home/onyxia"
-NPM_PREFIX="$USER_HOME/.npm-global"
-NODE_LOCAL="$USER_HOME/.local/node"
-BASHRC="$USER_HOME/.bashrc"
+NPM_PREFIX="$HOME/.npm-global"
+NODE_LOCAL="$HOME/.local/node"
+BASHRC="$HOME/.bashrc"
 
 MAJEUR_REQUIS=22                  # exigé par @anthropic-ai/claude-code
 VERSION_SECOURS="v22.11.0"        # si la version LTS ne peut pas être lue
@@ -190,11 +189,11 @@ EOF
   echo "[Auth] lecture du token Vault ajoutée à .bashrc"
 fi
 # Sans ce drapeau, un ~/.claude.json vierge relance l'assistant de premier démarrage.
-[ -f "$USER_HOME/.claude.json" ] || echo '{"hasCompletedOnboarding": true}' > "$USER_HOME/.claude.json"
+[ -f "$HOME/.claude.json" ] || echo '{"hasCompletedOnboarding": true}' > "$HOME/.claude.json"
 
-mkdir -p "$USER_HOME/.claude"
+mkdir -p "$HOME/.claude"
 if [ "$(id -u)" = "0" ]; then
-  chown -R onyxia:onyxia "$USER_HOME/.claude" "$USER_HOME/.claude.json" "$NPM_PREFIX" "$BASHRC" \
+  chown -R onyxia:onyxia "$HOME/.claude" "$HOME/.claude.json" "$NPM_PREFIX" "$BASHRC" \
     2>/dev/null || true
   [ -d "$NODE_LOCAL" ] && chown -R onyxia:onyxia "$NODE_LOCAL" 2>/dev/null || true
 fi

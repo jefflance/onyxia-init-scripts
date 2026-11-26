@@ -1,10 +1,10 @@
-# sspcloud-init-scripts
+# onyxia-init-scripts
 
 Script d'initialisation pour les services VSCode Onyxia (SSPCloud, Nubonyxia).
 URL à indiquer dans le champ « script d'initialisation » du service :
 
 ```
-https://raw.githubusercontent.com/jefflance/sspcloud-init-scripts/refs/heads/main/init.sh
+https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/refs/heads/main/init.sh
 ```
 
 `init.sh` télécharge et lance chaque brique ; l'échec de l'une n'arrête pas les suivantes.
@@ -17,6 +17,7 @@ https://raw.githubusercontent.com/jefflance/sspcloud-init-scripts/refs/heads/mai
 | `setup_git.sh` | Git, helper `git-credential-vault`, clone du dépôt du service |
 | `install_gh.sh` | CLI GitHub, token lu dans Vault |
 | `setup_claude_config.sh` | `CLAUDE.md` et skills depuis un dépôt privé |
+| `config_albert.sh` | Agent Continue pointant vers l'API Albert (clé `ALBERT_API_KEY`, variable d'env Onyxia) |
 | `setup_vscode.sh` | Thème « Dark Modern » par défaut (sans écraser un thème déjà choisi) |
 
 Aucun secret ici : les tokens sont lus dans Vault à chaque usage.
