@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # setup_vscode.sh — thème « Dark Modern » par défaut dans le VSCode du service.
 # N'écrase pas un thème déjà choisi ; le fichier peut contenir des commentaires (JSONC),
 # donc insertion textuelle plutôt que réécriture JSON.

@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # setup_claude_config.sh
 # Installe la configuration Claude Code (CLAUDE.md et skills) tenue dans un dépôt
 # PRIVÉ, cloné avec le token GitHub lu dans Vault par le helper de setup_git.sh.

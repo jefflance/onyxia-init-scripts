@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # install_gh.sh — CLI GitHub (gh), en espace utilisateur
 #
 # L'archive officielle est dépliée dans ~/.local/share/gh : ni root ni apt,

@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # install_claude_plugins.sh — bun, puis les plugins Claude Code
 # ~/.claude n'est pas persistant : sans ce stage, chaque nouveau service
 # démarre sans plugins. Après install_claude.sh (CLI « claude »).

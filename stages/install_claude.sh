@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # install_claude.sh — Node.js, CLI Claude Code, extension VSCode, token Vault
 #
 # Node vient de l'archive officielle (nodejs.org), dépliée dans ~/.local/node :

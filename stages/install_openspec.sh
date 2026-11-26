@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # install_openspec.sh — CLI OpenSpec (@fission-ai/openspec)
 # https://github.com/Fission-AI/OpenSpec
 #

@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # Pose un agent Continue sans toucher au config.yaml généré par l'extension.
 # ALBERT_API_KEY : variable d'env Onyxia, résolue par Continue à l'exécution (jamais écrite ici).
 STAGE=albert

@@ -57,6 +57,7 @@ dépôt du service dans `~/work`), `ALBERT_API_KEY` (lue par Continue, pas par l
   Par défaut `main` est suivi, donc tout push s'applique au prochain service. Pour épingler :
   URL de `init.sh` à un SHA ou un tag, et variable d'environnement `INIT_REF` au même SHA ou tag.
 - **Rejouable** : chaque stage vérifie ce qui est déjà en place (Node, gh, plugins, `.bashrc`).
+- Journal : tout est aussi écrit dans `~/init-onyxia.log` (`cat ~/init-onyxia.log` dans l'instance). Les stages se lancent avec `bash` (un `sh stage.sh` se relance seul sous bash).
 - `init.sh` rend toujours 0, même si des stages échouent : lire le bilan en fin de journal
   (un stage qui sort en non-zéro y figure en ÉCHEC, y compris un clonage raté dans `setup_git.sh`).
 

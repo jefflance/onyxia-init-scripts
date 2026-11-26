@@ -25,6 +25,14 @@ export BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/jefflance/onyxia-
 TRAVAIL="$(mktemp -d)"
 chmod 755 "$TRAVAIL"
 
+# Journal lisible dans l'instance : tout ce qui s'affiche y est aussi écrit.
+# Consulter : cat ~/init-onyxia.log
+if [ "$(id -u)" = "0" ]; then HOME_LOG="$(getent passwd onyxia | cut -d: -f6)"; else HOME_LOG="$HOME"; fi
+LOG="${HOME_LOG:-/tmp}/init-onyxia.log"
+{ : >> "$LOG"; } 2>/dev/null || LOG="/tmp/init-onyxia.log"
+[ "$(id -u)" = "0" ] && chown onyxia "$LOG" 2>/dev/null
+exec > >(tee -a "$LOG") 2>&1
+
 if [ "$(id -u)" = "0" ]; then
   HOME_ONYXIA="$(getent passwd onyxia | cut -d: -f6)"
   # -m garde l'environnement (GIT_REPOSITORY, VAULT_*…) ; HOME est remis à celui d'onyxia.
@@ -33,7 +41,8 @@ else
   lancer() { "$@"; }
 fi
 
-echo "############ INIT ONYXIA : DÉBUT ############"
+echo "############ INIT ONYXIA : DÉBUT ($(date '+%F %T')) ############"
+echo "journal : $LOG"
 echo "utilisateur : $(id -un) (uid $(id -u))"
 
 if ! curl -fsSL --max-time 60 "$BASE_URL/lib/lib.sh" -o "$TRAVAIL/lib.sh" || [ ! -s "$TRAVAIL/lib.sh" ]; then
@@ -45,7 +54,7 @@ export INIT_LIB="$TRAVAIL/lib.sh"
 BILAN=()
 for stage in "${STAGES[@]}"; do
   echo ""
-  echo "---- $stage ----"
+  echo "---- $stage ($(date '+%T')) ----"
   if curl -fsSL --max-time 60 "$BASE_URL/stages/$stage" -o "$TRAVAIL/$stage" && [ -s "$TRAVAIL/$stage" ]; then
     lancer bash "$TRAVAIL/$stage"
     code=$?
@@ -60,4 +69,5 @@ rm -rf "$TRAVAIL"
 echo ""
 echo "############ BILAN ############"
 printf '%s\n' "${BILAN[@]}"
-echo "############ INIT ONYXIA : FIN ############"
+echo "############ INIT ONYXIA : FIN ($(date '+%F %T')) — journal : $LOG ############"
+sleep 1   # laisse tee finir d'écrire

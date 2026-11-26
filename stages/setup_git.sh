@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"   # lancé par erreur avec sh
 # setup_git.sh
 # Configure Git pour toutes les forges, sans aucune donnée personnelle
 # ni secret dans ce fichier, et clone automatiquement le dépôt du service.
