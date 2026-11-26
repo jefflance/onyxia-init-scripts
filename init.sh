@@ -17,11 +17,24 @@ STAGES=(
   install_gh.sh              # a besoin du helper Vault
   setup_claude_config.sh     # clone un dépôt privé : a besoin du helper Vault
   config_albert.sh
+  setup_zsh.sh               # avant setup_vscode : le terminal par défaut
   setup_vscode.sh
 )
 
 # INIT_REF (tag ou SHA) épingle les stages ; sans lui, main est suivi.
 export BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/${INIT_REF:-main}}"
+# Proxy de repli : si GitHub est injoignable en direct, on passe par le proxy, qui filtre sur le User-Agent.
+# PROXY_UA_ON active le -A de curl() ci-dessous ; lib.sh configure le reste (wget, git, npm…).
+PROXY_URL="http://172.16.0.53:3128"
+PROXY_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+curl() { command curl ${PROXY_UA_ON:+-A "$PROXY_UA"} "$@"; }
+if ! curl -fsS --max-time 10 -o /dev/null "$BASE_URL/lib/lib.sh"; then
+  echo "[init] pas d'accès direct à l'extérieur : bascule sur le proxy $PROXY_URL"
+  export PROXY_URL PROXY_UA PROXY_UA_ON=1
+  export http_proxy="$PROXY_URL" https_proxy="$PROXY_URL" HTTP_PROXY="$PROXY_URL" HTTPS_PROXY="$PROXY_URL"
+  export no_proxy="localhost,127.0.0.1,.svc,.cluster.local" NO_PROXY="localhost,127.0.0.1,.svc,.cluster.local"
+fi
+
 TRAVAIL="$(mktemp -d)"
 chmod 755 "$TRAVAIL"
 
