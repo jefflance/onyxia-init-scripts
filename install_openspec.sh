@@ -14,7 +14,7 @@ BRIQUE=openspec
 
 command -v npm >/dev/null 2>&1 || echec "npm absent (install_claude.sh doit tourner avant)"
 
-npm install -g --prefix "$NPM_PREFIX" @fission-ai/openspec@latest >/dev/null 2>&1 \
+npm install -g --prefix "$NPM_PREFIX" "@fission-ai/openspec@${OPENSPEC_VERSION:-latest}" >/dev/null \
   || echec "installation de @fission-ai/openspec (registre npm injoignable ?)"
 log "OK — $(openspec --version 2>/dev/null || echo installé)"
 

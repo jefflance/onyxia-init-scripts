@@ -20,7 +20,8 @@ BRIQUES=(
   setup_vscode.sh
 )
 
-export BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/main}"
+# INIT_REF (tag ou SHA) épingle les briques ; sans lui, main est suivi.
+export BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/jefflance/onyxia-init-scripts/${INIT_REF:-main}}"
 TRAVAIL="$(mktemp -d)"
 chmod 755 "$TRAVAIL"
 

@@ -2,7 +2,10 @@
 # install_claude.sh — Node.js, CLI Claude Code, extension VSCode, token Vault
 #
 # Node vient de l'archive officielle (nodejs.org), dépliée dans ~/.local/node :
-# ni root, ni apt, ni sudo. La somme de contrôle est vérifiée avant dépliage.
+# ni root, ni apt, ni sudo. La somme de contrôle est vérifiée avant dépliage, et
+# la liste des sommes l'est elle-même par la signature GPG des mainteneurs Node
+# (clés actives de github.com/nodejs/release-keys, hôte distinct de nodejs.org).
+# Sans gpgv, on se contente de la somme seule, avec un avertissement.
 # Claude Code exige Node >= 22.
 #
 # Authentification : token CLAUDE_CODE_OAUTH_TOKEN lu dans Vault (section 4),
@@ -23,7 +26,17 @@ else
   dist="https://nodejs.org/dist/latest-v$MAJEUR.x"
   tmp="$(mktemp -d)"
 
-  telecharger "$dist/SHASUMS256.txt" "$tmp/sommes" 30 || echec "nodejs.org injoignable (réseau filtré ?)"
+  if command -v gpgv >/dev/null 2>&1; then
+    telecharger "$dist/SHASUMS256.txt.asc" "$tmp/sommes.asc" 30 || echec "nodejs.org injoignable (réseau filtré ?)"
+    telecharger "https://raw.githubusercontent.com/nodejs/release-keys/main/gpg-only-active-keys/pubring.kbx" "$tmp/cles.kbx" 30 \
+      || echec "clés de signature Node introuvables"
+    # --output : on ne lit que le texte réellement signé, pas un fichier à côté.
+    gpgv --quiet --keyring "$tmp/cles.kbx" --output "$tmp/sommes" "$tmp/sommes.asc" 2>/dev/null \
+      || echec "signature GPG de SHASUMS256.txt invalide"
+  else
+    log "ATTENTION : gpgv absent, signature de SHASUMS256.txt non vérifiée."
+    telecharger "$dist/SHASUMS256.txt" "$tmp/sommes" 30 || echec "nodejs.org injoignable (réseau filtré ?)"
+  fi
   nom="$(grep -o "node-v[0-9.]*-linux-$ARCH_NODE\.tar\.xz" "$tmp/sommes" | head -1)"
   [ -n "$nom" ] || echec "aucune archive Node $MAJEUR pour $ARCH_NODE"
 
@@ -40,7 +53,7 @@ log "Node $(node --version) — npm $(npm --version) — $(command -v node)"
 
 # -- 2. CLI Claude Code ------------------------------------------------------
 log "Installation de @anthropic-ai/claude-code..."
-npm install -g --prefix "$NPM_PREFIX" @anthropic-ai/claude-code || echec "installation du CLI"
+npm install -g --prefix "$NPM_PREFIX" "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION:-latest}" || echec "installation du CLI"
 
 # -- 3. Extension VSCode -----------------------------------------------------
 if command -v code-server >/dev/null 2>&1; then
